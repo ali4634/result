@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -188,7 +188,6 @@
                     row.cells[i + 1].querySelector('input').classList.toggle('fail-mark', mark < 40 && row.cells[i + 1].querySelector('input').value !== '');
                 }
                 
-                // **نیا اصول**: 240 سے کم نمبر والا راسب ہے
                 const isFailByTotal = obtainedMarks < 240;
                 const percentage = (obtainedMarks / 600) * 100;
 
@@ -209,14 +208,13 @@
             summaryFooter.textContent = `نتیجہ: کامیاب: ${passCount} - ناکام: ${classData.students.length - passCount}`;
         }
         
-        // **نیا اصول**: گریڈ کا نیا فارمولا
         function getGrade(obtainedMarks) {
             if (obtainedMarks < 240) return 'راسب';
             const p = (obtainedMarks / 600) * 100;
             if (p >= 80) return 'ممتاز';
             if (p >= 61) return 'جید جداً';
             if (p >= 50) return 'جید';
-            return 'مقبول'; // 40 سے 49 تک
+            return 'مقبول';
         }
         
         window.updateSubjectName = (i, v) => getActiveClass().subjectNames[i] = v;
@@ -245,18 +243,14 @@
             const element = document.getElementById('mainContent');
             const clone = element.cloneNode(true);
             
-            // **نیا فیچر**: PDF کے لیے خاص اسٹائل
-            const pdfStyles = `
-                <style>
-                    body, .app-card { margin: 0; padding: 0; box-shadow: none; font-family: 'Noto Nastaliq Urdu', sans-serif; }
-                    .header-info { padding-bottom: 5px; margin-bottom: 10px; }
-                    h2 { font-size: 14pt; }
-                    table { margin-top: 5px !important; }
-                    th, td { padding: 4px !important; font-size: 9pt !important; border-color: #666; }
-                    th { font-size: 10pt !important; }
-                    .summary-footer { padding: 8px !important; margin-top: 10px !important; font-size: 11pt !important; }
-                </style>
-            `;
+            const pdfStyles = `<style>
+                body, .app-card { margin: 0; padding: 0; box-shadow: none; font-family: 'Noto Nastaliq Urdu', sans-serif; }
+                .header-info { padding-bottom: 5px; margin-bottom: 10px; }
+                table { margin-top: 5px !important; }
+                th, td { padding: 4px !important; font-size: 9pt !important; border-color: #666; }
+                th { font-size: 10pt !important; }
+                .summary-footer { padding: 8px !important; margin-top: 10px !important; font-size: 11pt !important; }
+            </style>`;
             
             clone.querySelectorAll('input').forEach(input => {
                 const text = document.createElement('span');
@@ -272,7 +266,8 @@
                 margin: 0.25, filename: `${getActiveClass().header.class}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-                jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' }
+                // **تبدیلی**: صفحہ کا سائز A4 کر دیا گیا
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
             };
             html2pdf().from(clone).set(opt).save();
         });
