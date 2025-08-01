@@ -8,6 +8,11 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00564d">
 
+    <!-- **نیا فیچر**: نستعلیق فونٹ کو گوگل سے شامل کیا گیا -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -16,6 +21,7 @@
             --top-student-color: #e8f5e9; --header-text-color: white; --border-color: #b0bec5;
         }
         body {
+            /* **نیا فیچر**: نستعلیق فونٹ پوری ایپ پر لاگو کیا گیا */
             font-family: 'Noto Nastaliq Urdu', 'Segoe UI', Tahoma, sans-serif;
             background-color: var(--secondary-color); margin: 0; padding: 10px;
         }
@@ -28,6 +34,7 @@
         .header-info input {
             background: #f1f1f1; border: 1px solid var(--border-color); border-radius: 6px;
             padding: 8px; text-align: center; font-size: 1.1em; margin: 5px; max-width: 250px;
+            font-family: 'Noto Nastaliq Urdu', sans-serif;
         }
         .controls-panel { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .class-tabs { display: flex; gap: 10px; flex-wrap: wrap; flex-grow: 1; }
@@ -50,8 +57,9 @@
             color: var(--header-text-color); background: transparent; border: none;
             border-bottom: 1px dashed #a7ffeb; border-radius: 0;
             padding: 5px; text-align: center; width: 100%; box-sizing: border-box; font-size: 1.1em;
+            font-family: 'Noto Nastaliq Urdu', sans-serif;
         }
-        tbody input { width: 100%; padding: 8px; text-align: center; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        tbody input { width: 100%; padding: 8px; text-align: center; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-family: 'Segoe UI', Tahoma; }
         .fail-mark { background-color: var(--fail-color) !important; border-color: var(--fail-border) !important; }
         .top-student td { background-color: var(--top-student-color) !important; }
         .summary-footer { margin-top: 20px; padding: 15px; background: var(--primary-color); color: white; border-radius: 8px; text-align: center; font-size: 1.2em; }
@@ -189,10 +197,9 @@
                 }
                 
                 const percentage = (obtainedMarks / 600) * 100;
-                if (!isFail && percentage >= 40) passCount++; // A student also fails if their total percentage is less than 40.
-                
                 const finalIsFail = isFail || percentage < 40;
 
+                if (!finalIsFail) passCount++;
                 if (percentage > topStudentInfo.percentage && !finalIsFail) {
                     topStudentInfo = { index, percentage };
                 }
@@ -213,7 +220,7 @@
             if (p >= 61) return 'جید جداً';
             if (p >= 50) return 'جید';
             if (p >= 40) return 'مقبول';
-            return 'راسب'; // This handles cases where p < 40
+            return 'راسب';
         }
         
         window.updateSubjectName = (i, v) => getActiveClass().subjectNames[i] = v;
@@ -240,6 +247,9 @@
         
         document.getElementById('exportPdfBtn').addEventListener('click', () => {
             const element = document.getElementById('mainContent').cloneNode(true);
+            element.style.fontFamily = "'Noto Nastaliq Urdu', sans-serif";
+            element.querySelectorAll('*').forEach(el => el.style.fontFamily = "'Noto Nastaliq Urdu', sans-serif");
+            
             element.querySelectorAll('input').forEach(input => {
                 const text = document.createElement('span');
                 text.textContent = input.value || input.placeholder;
@@ -249,13 +259,13 @@
             });
             element.style.background = 'white';
             element.querySelectorAll('th').forEach(th => th.style.color = '#fff');
-            element.querySelectorAll('.fail-mark, .top-student td').forEach(td => td.style.backgroundColor = 'transparent');
             
             const opt = {
                 margin: 0.4, filename: `${getActiveClass().header.class}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+                // **نیا فیچر**: صفحہ کا سائز تبدیل کیا گیا
+                jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' }
             };
             html2pdf().from(element).set(opt).save();
         });
@@ -284,7 +294,6 @@
             reader.readAsText(file); restoreInput.value = '';
         });
         
-        // PWA Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
