@@ -1,0 +1,21 @@
+{
+  "name": "کشف الدرجات ڈیجیٹل",
+  "short_name": "رزلٹ سسٹم",
+  "start_url": "/result/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00564d",
+  "description": "مدارس کے لیے ڈیجیٹل رزلٹ بنانے کا نظام",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
