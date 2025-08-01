@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -158,7 +158,8 @@
                 marksRow.innerHTML += `<th class="paper-marks">100</th>`;
             }
             
-            subjectRow.innerHTML += `<th colspan="2">حاصل کردہ نمرات کی تفصیل</th><th rowspan="3">گریڈ</th>`;
+            // **درستگی**: "نمرات" کو "نمبرات" کیا گیا
+            subjectRow.innerHTML += `<th colspan="2">حاصل کردہ نمبرات کی تفصیل</th><th rowspan="3">گریڈ</th>`;
             paperRow.innerHTML += `<th rowspan="2">مجموعی</th><th rowspan="2">اوسط٪</th>`;
 
             classData.students.forEach((student, index) => {
@@ -169,6 +170,7 @@
             });
 
             const addRow = tbody.insertRow();
+            addRow.className = 'add-student-row'; // **نیا فیچر**: پی ڈی ایف سے ہٹانے کے لیے کلاس
             addRow.innerHTML = `<td colspan="10"><button class="add-btn" onclick="addStudent()">+</button> طالب علم شامل کریں</td>`;
 
             calculateResults();
@@ -243,11 +245,14 @@
             const element = document.getElementById('mainContent');
             const clone = element.cloneNode(true);
             
+            // **نیا فیچر**: پی ڈی ایف سے غیر ضروری بٹن کو ہٹایا گیا
+            clone.querySelector('.add-student-row').remove();
+
             const pdfStyles = `<style>
-                body, .app-card { margin: 0; padding: 0; box-shadow: none; font-family: 'Noto Nastaliq Urdu', sans-serif; }
+                body, .app-card { margin: 0; padding: 0; box-shadow: none; font-family: 'Noto Nastaliq Urdu', sans-serif; background: #fff; }
                 .header-info { padding-bottom: 5px; margin-bottom: 10px; }
                 table { margin-top: 5px !important; }
-                th, td { padding: 4px !important; font-size: 9pt !important; border-color: #666; }
+                th, td { padding: 4px !important; font-size: 9pt !important; border-color: #666 !important; }
                 th { font-size: 10pt !important; }
                 .summary-footer { padding: 8px !important; margin-top: 10px !important; font-size: 11pt !important; }
             </style>`;
@@ -259,15 +264,14 @@
                 if (input.classList.contains('subject-name-input')) text.style.color = 'black';
                 input.parentNode.replaceChild(text, input);
             });
-            clone.style.background = 'white';
+            
             clone.insertAdjacentHTML('afterbegin', pdfStyles);
 
             const opt = {
                 margin: 0.25, filename: `${getActiveClass().header.class}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-                // **تبدیلی**: صفحہ کا سائز A4 کر دیا گیا
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+                jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' }
             };
             html2pdf().from(clone).set(opt).save();
         });
