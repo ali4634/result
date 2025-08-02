@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -245,40 +245,43 @@
             
             clone.querySelector('.add-student-row').remove();
 
-            const pdfContainer = document.createElement('div');
-            pdfContainer.innerHTML = `<div id="pdf-content">${clone.innerHTML}</div>`;
-            
-            const pdfStyles = `<style>
-                @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
-                body { font-family: 'Noto Nastaliq Urdu', sans-serif; }
-                #pdf-content { border: 5px double #004d40; padding: 20px; background: #fff; }
-                .header-info { padding-bottom: 5px; margin-bottom: 10px; }
-                table { margin-top: 5px !important; }
-                th, td { padding: 4px !important; font-size: 9pt !important; border-color: #666 !important; }
-                th { font-size: 10pt !important; }
-                .summary-footer { padding: 8px !important; margin-top: 10px !important; font-size: 11pt !important; }
-            </style>`;
-            
-            const contentToPrint = document.createElement('div');
-            contentToPrint.innerHTML = pdfStyles;
-            
-            const contentBody = clone.cloneNode(true);
-            contentBody.querySelectorAll('input').forEach(input => {
+            // Replace inputs with spans for printing
+            clone.querySelectorAll('input').forEach(input => {
                 const text = document.createElement('span');
                 text.textContent = input.value || input.placeholder;
-                if (input.id === 'madrasaName') text.style.cssText = 'font-size: 1.5em; color: black;';
-                if (input.classList.contains('subject-name-input')) text.style.color = 'black';
+                if (input.id === 'madrasaName') text.style.fontSize = '1.5em';
                 input.parentNode.replaceChild(text, input);
             });
-            contentToPrint.appendChild(contentBody);
+            
+            // Create a wrapper for PDF content with border
+            const pdfContainer = document.createElement('div');
+            pdfContainer.style.padding = '20px';
+            pdfContainer.style.fontFamily = "'Noto Nastaliq Urdu', sans-serif";
+            
+            const pdfContent = document.createElement('div');
+            pdfContent.style.border = '5px double #004d40';
+            pdfContent.style.padding = '20px';
+            pdfContent.style.background = '#fff';
+            
+            pdfContent.appendChild(clone);
+            pdfContainer.appendChild(pdfContent);
+            
+            // This container will be used for PDF generation but not shown on screen
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.left = '-9999px';
+            document.body.appendChild(pdfContainer);
 
             const opt = {
-                margin: 0.25, filename: `${getActiveClass().header.class}.pdf`,
+                margin: 0.1,
+                filename: `${getActiveClass().header.class}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
-                html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: pdfContainer.scrollWidth, height: pdfContainer.scrollHeight },
                 jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' }
             };
-            html2pdf().from(contentToPrint).set(opt).save();
+            
+            html2pdf().from(pdfContainer).set(opt).save().then(() => {
+                document.body.removeChild(pdfContainer); // Clean up the temporary container
+            });
         });
 
         const restoreInput = document.getElementById('restoreInput');
