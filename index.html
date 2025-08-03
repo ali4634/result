@@ -1,69 +1,61 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>کشف الدرجات - ڈیجیٹل</title>
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#004d40">
-    <!-- Noto Nastaliq Urdu Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary-color: #004d40; --secondary-color: #e8f5e9;
             --fail-color: #ffebee; --fail-border: #e57373;
             --top-student-color: #dcedc8; --header-text-color: white; --border-color: #cfd8dc;
         }
-        body {
-            font-family: 'Noto Nastaliq Urdu', 'Segoe UI', Tahoma, sans-serif;
-            background-color: var(--secondary-color); margin: 0; padding: 10px;
-        }
+        body { font-family: 'Noto Nastaliq Urdu', 'Segoe UI', Tahoma, sans-serif; background-color: var(--secondary-color); margin: 0; padding: 10px; }
         .container { max-width: 1200px; margin: auto; }
         .app-card { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); margin-bottom: 20px; border: 1px solid #e0e0e0; }
         .header-info { text-align: center; padding: 10px; margin-bottom: 20px; }
-        .header-info input {
-            background: #f5f5f5; border: 1px solid var(--border-color); border-radius: 6px;
-            padding: 8px; text-align: center; font-size: 1.1em; margin: 5px; max-width: 280px; font-family: 'Noto Nastaliq Urdu', sans-serif;
-        }
+        .header-info input { background: #f5f5f5; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; text-align: center; font-size: 1.1em; margin: 5px; max-width: 280px; font-family: 'Noto Nastaliq Urdu', sans-serif; }
         .controls-panel { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .class-tabs { display: flex; gap: 10px; flex-wrap: wrap; flex-grow: 1; }
-        .class-tab {
-            padding: 8px 15px; background: #c8e6c9; border-radius: 6px; cursor: pointer;
-            border: 1px solid #a5d6a7; transition: all 0.3s;
-        }
+        .class-tab { padding: 8px 15px; background: #c8e6c9; border-radius: 6px; cursor: pointer; border: 1px solid #a5d6a7; transition: all 0.3s; }
         .class-tab.active { background: var(--primary-color); color: var(--header-text-color); font-weight: bold; border-color: var(--primary-color); }
-        .add-btn {
-            background: #28a745; color: white; border: none; border-radius: 50%; width: 38px; height: 38px;
-            font-size: 22px; cursor: pointer; line-height: 38px; text-align: center; flex-shrink: 0;
-        }
+        .add-btn { background: #28a745; color: white; border: none; border-radius: 50%; width: 38px; height: 38px; font-size: 22px; cursor: pointer; line-height: 38px; text-align: center; flex-shrink: 0; }
         .result-grid-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-        th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; min-width: 110px; }
+        th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; min-width: 80px; }
         thead th { background-color: var(--primary-color); color: var(--header-text-color); position: sticky; top: 0; z-index: 10; }
         th.paper-name, th.paper-marks { font-weight: normal; background-color: #00695c; }
-        thead input.subject-name-input {
-            color: var(--header-text-color); background: transparent; border: none; border-bottom: 1px dashed #b2dfdb;
-            border-radius: 0; padding: 5px; text-align: center; width: 100%;
-            box-sizing: border-box; font-size: 1.1em; font-family: 'Noto Nastaliq Urdu', sans-serif;
-        }
-        tbody input { width: 100%; padding: 8px; text-align: center; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-family: 'Segoe UI', Tahoma; }
+        thead input.subject-name-input { color: var(--header-text-color); background: transparent; border: none; border-bottom: 1px dashed #b2dfdb; border-radius: 0; padding: 5px; text-align: center; width: 100%; box-sizing: border-box; font-size: 1em; font-family: 'Noto Nastaliq Urdu', sans-serif; }
+        tbody input[type="text"], tbody input[type="number"] { width: 100%; padding: 8px; text-align: center; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-family: 'Segoe UI', Tahoma; }
         .fail-mark { background-color: var(--fail-color) !important; border-color: var(--fail-border) !important; }
         .top-student td { background-color: var(--top-student-color) !important; }
         .summary-footer { margin-top: 20px; padding: 15px; background: var(--primary-color); color: white; border-radius: 8px; text-align: center; font-size: 1.2em; }
         .action-buttons { padding: 15px; text-align: center; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
         .action-buttons button { padding: 10px 25px; font-size: 1em; border-radius: 6px; border: none; color: white; cursor: pointer; transition: opacity 0.3s; }
         .action-buttons button:hover { opacity: 0.9; }
+        
+        @media print {
+            body, .container { margin: 0; padding: 0; background: #fff; box-shadow: none; }
+            .app-card { border: none; box-shadow: none; padding: 0; margin-bottom: 10px; }
+            .action-buttons, .controls-panel-card, .add-student-row { display: none; }
+            .header-info input, tbody input { border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important; width: 100% !important; box-shadow: none !important; font-size: inherit !important; }
+            table { font-size: 8pt; table-layout: fixed; width: 100%; }
+            th, td { padding: 3px 2px !important; min-width: auto; word-wrap: break-word; }
+            .result-grid-container { overflow: visible; border: none; }
+            #mainContent { border: 5px double #000; padding: 15px; }
+            .summary-footer { padding: 5px !important; }
+            @page { size: A4 portrait; margin: 0.5in; }
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <div class="app-card">
+        <div class="app-card controls-panel-card">
             <div class="controls-panel">
                 <div id="classTabs" class="class-tabs"></div>
                 <button id="addClassBtn" class="add-btn" title="نیا درجہ شامل کریں">+</button>
@@ -85,7 +77,7 @@
         </div>
         <div class="action-buttons">
             <button id="saveDataBtn" style="background-color: #007bff;">محفوظ کریں</button>
-            <button id="exportPdfBtn" style="background-color: #17a2b8;">PDF ایکسپورٹ</button>
+            <button id="printBtn" style="background-color: #6f42c1;">پرنٹ کریں (PDF کے لیے بہترین)</button>
             <button id="backupBtn" style="background-color: #5a6268;">بیک اپ بنائیں</button>
             <button id="restoreBtn" style="background-color: #28a745;">ڈیٹا بحال کریں</button>
             <button id="resetBtn" style="background-color: #dc3545;">درجہ ری سیٹ کریں</button>
@@ -98,7 +90,7 @@
         const classTabsContainer = document.getElementById('classTabs'), addClassBtn = document.getElementById('addClassBtn'),
               resultGrid = document.getElementById('resultGrid'), summaryFooter = document.getElementById('summaryFooter');
         let db = {}, activeClassIndex = 0;
-        const paperNames = ["الورقۃ الاولیٰ", "الورقۃ الثانی", "الورقۃ الثالث", "الورقۃ الرابع", "الورقۃ الخامس", "الورقۃ السادس"];
+        const paperNames = ["پہلا پرچہ", "دوسرا پرچہ", "تیسرا پرچہ", "چوتھا پرچہ", "پانچواں پرچہ", "چھٹا پرچہ"];
         
         const getActiveClass = () => db.classes[activeClassIndex];
         const createNewClassObject = className => ({
@@ -152,21 +144,29 @@
 
             const subjectRow = thead.insertRow(), paperRow = thead.insertRow(), marksRow = thead.insertRow();
             subjectRow.innerHTML = `<th rowspan="3">رول نمبر</th>`;
-            
             for (let i = 0; i < 6; i++) {
                 subjectRow.innerHTML += `<th><input class="subject-name-input" type="text" value="${classData.subjectNames[i] || ''}" placeholder="مضمون کا نام" onblur="updateSubjectName(${i}, this.value)"></th>`;
                 paperRow.innerHTML += `<th class="paper-name">${paperNames[i]}</th>`;
                 marksRow.innerHTML += `<th class="paper-marks">100</th>`;
             }
-            
             subjectRow.innerHTML += `<th colspan="2">حاصل کردہ نمبرات کی تفصیل</th><th rowspan="3">گریڈ</th>`;
             paperRow.innerHTML += `<th rowspan="2">مجموعی</th><th rowspan="2">اوسط٪</th>`;
 
             classData.students.forEach((student, index) => {
                 const row = tbody.insertRow();
-                row.innerHTML = `<td><input type="text" value="${student.rollNo || ''}" onblur="updateStudent(${index}, 'rollNo', this.value)"></td>`;
-                for (let i = 0; i < 6; i++) row.innerHTML += `<td><input type="number" value="${student.marks[i] || ''}" oninput="updateStudent(${index}, 'marks', this.value, ${i})"></td>`;
-                row.innerHTML += `<td class="total"></td><td class="percentage"></td><td class="grade"></td>`;
+                
+                // **حتمی درستگی**: ہر خانہ الگ الگ اور ترتیب سے بنایا جا رہا ہے
+                const rollNoCell = row.insertCell();
+                rollNoCell.innerHTML = `<input type="text" value="${student.rollNo || ''}" onblur="updateStudent(${index}, 'rollNo', this.value)">`;
+                
+                for (let i = 0; i < 6; i++) {
+                    const markCell = row.insertCell();
+                    markCell.innerHTML = `<input type="number" value="${student.marks[i] || ''}" oninput="updateStudent(${index}, 'marks', this.value, ${i})">`;
+                }
+
+                row.insertCell().className = 'total';
+                row.insertCell().className = 'percentage';
+                row.insertCell().className = 'grade';
             });
 
             const addRow = tbody.insertRow();
@@ -178,33 +178,36 @@
 
         function calculateResults() {
             const classData = getActiveClass();
-            let passCount = 0, topStudentInfo = { index: -1, percentage: -1 };
+            let passCount = 0;
+            let topStudentInfo = { index: -1, obtainedMarks: -1 };
 
             classData.students.forEach((student, index) => {
                 const row = resultGrid.rows[index + 3];
                 let obtainedMarks = 0;
-                
                 for (let i = 0; i < 6; i++) {
                     const mark = student.marks[i] || 0;
                     obtainedMarks += mark;
-                    row.cells[i + 1].querySelector('input').classList.toggle('fail-mark', mark < 40 && row.cells[i + 1].querySelector('input').value !== '');
+                    row.cells[i + 1].querySelector('input').classList.toggle('fail-mark', (mark < 40 && student.marks[i] !== ''));
                 }
                 
-                const isFailByTotal = obtainedMarks < 240;
-                const percentage = (obtainedMarks / 600) * 100;
-
-                if (!isFailByTotal) {
+                const isFail = obtainedMarks < 240;
+                if (!isFail) {
                     passCount++;
-                    if (percentage > topStudentInfo.percentage) topStudentInfo = { index, percentage };
+                    if (obtainedMarks > topStudentInfo.obtainedMarks) {
+                        topStudentInfo = { index, obtainedMarks };
+                    }
                 }
                 
-                row.querySelector('.total').textContent = obtainedMarks;
-                row.querySelector('.percentage').textContent = percentage.toFixed(1) + '%';
-                row.querySelector('.grade').textContent = getGrade(obtainedMarks);
+                const percentage = (obtainedMarks / 600) * 100;
+                row.cells[7].textContent = obtainedMarks;
+                row.cells[8].textContent = percentage.toFixed(1) + '%';
+                row.cells[9].textContent = getGrade(obtainedMarks);
                 row.classList.remove('top-student');
             });
 
-            if (topStudentInfo.index !== -1) resultGrid.rows[topStudentInfo.index + 3].classList.add('top-student');
+            if (topStudentInfo.index !== -1) {
+                resultGrid.rows[topStudentInfo.index + 3].classList.add('top-student');
+            }
             summaryFooter.textContent = `نتیجہ: کامیاب: ${passCount} - ناکام: ${classData.students.length - passCount}`;
         }
         
@@ -220,8 +223,12 @@
         window.updateSubjectName = (i, v) => getActiveClass().subjectNames[i] = v;
         window.updateStudent = (index, field, value, paperIndex = null) => {
             const student = getActiveClass().students[index];
-            if (field === 'marks') student.marks[paperIndex] = parseInt(value) || 0;
-            else student[field] = value;
+            if (field === 'marks') {
+                if (!student.marks) student.marks = [];
+                student.marks[paperIndex] = parseInt(value) || 0;
+            } else {
+                student[field] = value;
+            }
             calculateResults();
         };
         window.addStudent = () => {
@@ -238,64 +245,19 @@
         });
 
         document.getElementById('saveDataBtn').addEventListener('click', saveData);
+        document.getElementById('printBtn').addEventListener('click', () => window.print());
         
-        document.getElementById('exportPdfBtn').addEventListener('click', () => {
-            const mainContent = document.getElementById('mainContent');
-            const clone = mainContent.cloneNode(true);
-            
-            clone.querySelector('.add-student-row').remove();
-
-            // Replace inputs with spans for printing
-            clone.querySelectorAll('input').forEach(input => {
-                const text = document.createElement('span');
-                text.textContent = input.value || input.placeholder;
-                if (input.id === 'madrasaName') text.style.fontSize = '1.5em';
-                input.parentNode.replaceChild(text, input);
-            });
-            
-            // Create a wrapper for PDF content with border
-            const pdfContainer = document.createElement('div');
-            pdfContainer.style.padding = '20px';
-            pdfContainer.style.fontFamily = "'Noto Nastaliq Urdu', sans-serif";
-            
-            const pdfContent = document.createElement('div');
-            pdfContent.style.border = '5px double #004d40';
-            pdfContent.style.padding = '20px';
-            pdfContent.style.background = '#fff';
-            
-            pdfContent.appendChild(clone);
-            pdfContainer.appendChild(pdfContent);
-            
-            // This container will be used for PDF generation but not shown on screen
-            pdfContainer.style.position = 'absolute';
-            pdfContainer.style.left = '-9999px';
-            document.body.appendChild(pdfContainer);
-
-            const opt = {
-                margin: 0.1,
-                filename: `${getActiveClass().header.class}.pdf`,
-                image: { type: 'jpeg', quality: 1.0 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: pdfContainer.scrollWidth, height: pdfContainer.scrollHeight },
-                jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' }
-            };
-            
-            html2pdf().from(pdfContainer).set(opt).save().then(() => {
-                document.body.removeChild(pdfContainer); // Clean up the temporary container
-            });
-        });
-
         const restoreInput = document.getElementById('restoreInput');
         document.getElementById('resetBtn').addEventListener('click', () => {
-            if(confirm("کیا آپ واقعی اس درجے کے تمام طلباء کا ڈیٹا ری سیٹ کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔")) {
+            if(confirm("کیا آپ واقعی اس درجے کے تمام طلباء کا ڈیٹا ری سیٹ کرنا چاہتے ہیں؟")) {
                 getActiveClass().students = [];
                 renderGrid();
-                alert("موجودہ درجہ کامیابی سے ری سیٹ ہو گیا ہے۔");
             }
         });
         document.getElementById('backupBtn').addEventListener('click', () => {
             saveData(); const dataStr = JSON.stringify(db, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            const url = URL.createObjectURL(blob); const a = document.createElement("a");
             a.href = url; a.download = `MadrasaBackup-${new Date().toISOString().slice(0,10)}.json`;
             a.click(); URL.revokeObjectURL(url);
         });
