@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <!-- PDF بنانے والی لائبریری شامل کی گئی ہے -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary-color: #004d40; --secondary-color: #e8f5e9;
@@ -26,7 +28,7 @@
         .class-tab.active { background: var(--primary-color); color: var(--header-text-color); font-weight: bold; border-color: var(--primary-color); }
         .add-btn { background: #28a745; color: white; border: none; border-radius: 50%; width: 38px; height: 38px; font-size: 22px; cursor: pointer; line-height: 38px; text-align: center; flex-shrink: 0; }
         .result-grid-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid var(--border-color); padding: 8px; text-align: center; min-width: 80px; }
         thead th { background-color: var(--primary-color); color: var(--header-text-color); position: sticky; top: 0; z-index: 10; }
         th.paper-name, th.paper-marks { font-weight: normal; background-color: #00695c; }
@@ -38,18 +40,87 @@
         .action-buttons { padding: 15px; text-align: center; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
         .action-buttons button { padding: 10px 25px; font-size: 1em; border-radius: 6px; border: none; color: white; cursor: pointer; transition: opacity 0.3s; }
         .action-buttons button:hover { opacity: 0.9; }
+        .action-cell button { font-size: 0.8em; padding: 4px 8px; background-color: #00796b; color:white; border:none; border-radius: 4px; cursor:pointer;}
         
+        /* Print Specific Styles */
         @media print {
-            body, .container { margin: 0; padding: 0; background: #fff; box-shadow: none; }
+            body, .container { margin: 0; padding: 0; background: #fff; box-shadow: none; font-size: 11pt; }
             .app-card { border: none; box-shadow: none; padding: 0; margin-bottom: 10px; }
-            .action-buttons, .controls-panel-card, .add-student-row { display: none; }
-            .header-info input, tbody input { border: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important; width: 100% !important; box-shadow: none !important; font-size: inherit !important; }
-            table { font-size: 8pt; table-layout: fixed; width: 100%; }
-            th, td { padding: 3px 2px !important; min-width: auto; word-wrap: break-word; }
-            .result-grid-container { overflow: visible; border: none; }
-            #mainContent { border: 5px double #000; padding: 15px; }
-            .summary-footer { padding: 5px !important; }
-            @page { size: A4 portrait; margin: 0.5in; }
+            .action-buttons, .controls-panel-card, .add-student-row, .action-cell { display: none; }
+            
+            /* Convert inputs to plain text for printing */
+            .header-info input, tbody input, thead input.subject-name-input {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                box-shadow: none !important;
+                font-size: inherit !important;
+                text-align: center;
+                white-space: normal;
+            }
+
+            table {
+                font-size: 10pt;
+                table-layout: auto;
+                width: 100%;
+                page-break-after: auto;
+            }
+            th, td {
+                padding: 5px 3px !important;
+                min-width: auto;
+                word-wrap: break-word;
+                white-space: normal;
+            }
+            thead th {
+                background-color: var(--primary-color) !important;
+                -webkit-print-color-adjust: exact;
+                color: var(--header-text-color) !important;
+                print-color-adjust: exact;
+                position: static;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            .result-grid-container {
+                overflow: visible;
+                border: none;
+            }
+            #mainContent {
+                border: 2px solid #000;
+                padding: 10px;
+            }
+            .summary-footer {
+                padding: 8px !important;
+                font-size: 1.1em;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: var(--primary-color) !important;
+                color: white !important;
+            }
+            
+            /* Header info for print */
+            .header-info {
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+                border-bottom: 1px solid #ccc;
+            }
+            .header-info input {
+                display: block;
+                width: 100%;
+                margin: 0 auto 5px auto;
+                font-size: 1.2em;
+            }
+            
+            @page {
+                size: A4 portrait;
+                margin: 0.75in 0.5in;
+            }
         }
     </style>
 </head>
@@ -77,7 +148,7 @@
         </div>
         <div class="action-buttons">
             <button id="saveDataBtn" style="background-color: #007bff;">محفوظ کریں</button>
-            <button id="printBtn" style="background-color: #6f42c1;">پرنٹ کریں (PDF کے لیے بہترین)</button>
+            <button id="printBtn" style="background-color: #6f42c1;">پوری لسٹ پرنٹ کریں</button>
             <button id="backupBtn" style="background-color: #5a6268;">بیک اپ بنائیں</button>
             <button id="restoreBtn" style="background-color: #28a745;">ڈیٹا بحال کریں</button>
             <button id="resetBtn" style="background-color: #dc3545;">درجہ ری سیٹ کریں</button>
@@ -93,15 +164,21 @@
         const paperNames = ["پہلا پرچہ", "دوسرا پرچہ", "تیسرا پرچہ", "چوتھا پرچہ", "پانچواں پرچہ", "چھٹا پرچہ"];
         
         const getActiveClass = () => db.classes[activeClassIndex];
-        const createNewClassObject = className => ({
-            header: { madrasa: "جامعہ انور القران", class: className, exam: "" },
-            subjectNames: ["", "", "", "", "", ""], students: []
-        });
+        const createNewClassObject = (className, studentCount = 0) => {
+            const newClass = {
+                header: { madrasa: "جامعہ انور القران", class: className, exam: "" },
+                subjectNames: ["", "", "", "", "", ""], students: []
+            };
+            for(let i = 0; i < studentCount; i++) {
+                newClass.students.push({ rollNo: '', name: '', marks: ['', '', '', '', '', ''] });
+            }
+            return newClass;
+        };
 
         function loadData() {
             const data = localStorage.getItem('madrasaResultSystem');
             db = data ? JSON.parse(data) : { classes: [], activeClassIndex: 0 };
-            if (db.classes.length === 0) db.classes.push(createNewClassObject("موقف علیہ بنین"));
+            if (db.classes.length === 0) db.classes.push(createNewClassObject("موقف علیہ بنین", 0)); // Default class with 0 students
             activeClassIndex = db.activeClassIndex || 0;
             renderAll();
         }
@@ -143,35 +220,30 @@
             thead.innerHTML = ''; tbody.innerHTML = '';
 
             const subjectRow = thead.insertRow(), paperRow = thead.insertRow(), marksRow = thead.insertRow();
-            subjectRow.innerHTML = `<th rowspan="3">رول نمبر</th>`;
+            subjectRow.innerHTML = `<th rowspan="3">رول نمبر</th><th rowspan="3">نام طالب علم</th>`;
             for (let i = 0; i < 6; i++) {
                 subjectRow.innerHTML += `<th><input class="subject-name-input" type="text" value="${classData.subjectNames[i] || ''}" placeholder="مضمون کا نام" onblur="updateSubjectName(${i}, this.value)"></th>`;
                 paperRow.innerHTML += `<th class="paper-name">${paperNames[i]}</th>`;
                 marksRow.innerHTML += `<th class="paper-marks">100</th>`;
             }
-            subjectRow.innerHTML += `<th colspan="2">حاصل کردہ نمبرات کی تفصیل</th><th rowspan="3">گریڈ</th>`;
+            subjectRow.innerHTML += `<th colspan="2">حاصل کردہ نمبرات کی تفصیل</th><th rowspan="3">گریڈ</th><th rowspan="3">عمل</th>`;
             paperRow.innerHTML += `<th rowspan="2">مجموعی</th><th rowspan="2">اوسط٪</th>`;
 
             classData.students.forEach((student, index) => {
                 const row = tbody.insertRow();
                 
-                // **حتمی درستگی**: ہر خانہ الگ الگ اور ترتیب سے بنایا جا رہا ہے
-                const rollNoCell = row.insertCell();
-                rollNoCell.innerHTML = `<input type="text" value="${student.rollNo || ''}" onblur="updateStudent(${index}, 'rollNo', this.value)">`;
-                
+                let rowHTML = `<td><input type="text" value="${student.rollNo || ''}" onblur="updateStudent(${index}, 'rollNo', this.value)"></td>
+                               <td><input type="text" value="${student.name || ''}" onblur="updateStudent(${index}, 'name', this.value)"></td>`;
                 for (let i = 0; i < 6; i++) {
-                    const markCell = row.insertCell();
-                    markCell.innerHTML = `<input type="number" value="${student.marks[i] || ''}" oninput="updateStudent(${index}, 'marks', this.value, ${i})">`;
+                    rowHTML += `<td><input type="number" value="${student.marks[i] || ''}" oninput="updateStudent(${index}, 'marks', this.value, ${i})"></td>`;
                 }
-
-                row.insertCell().className = 'total';
-                row.insertCell().className = 'percentage';
-                row.insertCell().className = 'grade';
+                rowHTML += `<td class="total"></td><td class="percentage"></td><td class="grade"></td><td class="action-cell"><button onclick="printStudentCard(${index})">کارڈ PDF</button></td>`;
+                row.innerHTML = rowHTML;
             });
 
             const addRow = tbody.insertRow();
             addRow.className = 'add-student-row';
-            addRow.innerHTML = `<td colspan="10"><button class="add-btn" onclick="addStudent()">+</button> طالب علم شامل کریں</td>`;
+            addRow.innerHTML = `<td colspan="12"><button class="add-btn" onclick="addStudent()">+</button> طالب علم شامل کریں</td>`;
 
             calculateResults();
         }
@@ -182,31 +254,48 @@
             let topStudentInfo = { index: -1, obtainedMarks: -1 };
 
             classData.students.forEach((student, index) => {
-                const row = resultGrid.rows[index + 3];
+                const row = resultGrid.rows[index + 3]; 
                 let obtainedMarks = 0;
+                let allMarksEntered = true; 
                 for (let i = 0; i < 6; i++) {
-                    const mark = student.marks[i] || 0;
-                    obtainedMarks += mark;
-                    row.cells[i + 1].querySelector('input').classList.toggle('fail-mark', (mark < 40 && student.marks[i] !== ''));
+                    const mark = student.marks[i]; 
+                    if (mark === null || mark === undefined || mark === '') { 
+                        allMarksEntered = false;
+                        if (row && row.cells[i + 2] && row.cells[i + 2].querySelector('input')) {
+                            row.cells[i + 2].querySelector('input').classList.remove('fail-mark');
+                        }
+                    } else {
+                        obtainedMarks += parseInt(mark);
+                        if (row && row.cells[i + 2] && row.cells[i + 2].querySelector('input')) {
+                            row.cells[i + 2].querySelector('input').classList.toggle('fail-mark', (parseInt(mark) < 40));
+                        }
+                    }
                 }
                 
-                const isFail = obtainedMarks < 240;
-                if (!isFail) {
+                const isFail = allMarksEntered && obtainedMarks < 240; 
+                if (allMarksEntered && !isFail) {
                     passCount++;
                     if (obtainedMarks > topStudentInfo.obtainedMarks) {
                         topStudentInfo = { index, obtainedMarks };
                     }
+                } else if (!allMarksEntered) {
+                    if (row) row.classList.remove('top-student');
                 }
                 
-                const percentage = (obtainedMarks / 600) * 100;
-                row.cells[7].textContent = obtainedMarks;
-                row.cells[8].textContent = percentage.toFixed(1) + '%';
-                row.cells[9].textContent = getGrade(obtainedMarks);
-                row.classList.remove('top-student');
+                const percentage = allMarksEntered ? (obtainedMarks / 600) * 100 : 0; 
+                if (row) {
+                    row.cells[8].textContent = allMarksEntered ? obtainedMarks : 'نامکمل';
+                    row.cells[9].textContent = allMarksEntered ? percentage.toFixed(1) + '%' : 'نامکمل';
+                    row.cells[10].textContent = allMarksEntered ? getGrade(obtainedMarks) : 'نامکمل';
+                    row.classList.remove('top-student'); 
+                }
             });
 
             if (topStudentInfo.index !== -1) {
-                resultGrid.rows[topStudentInfo.index + 3].classList.add('top-student');
+                const topStudentRow = resultGrid.rows[topStudentInfo.index + 3]; 
+                if (topStudentRow) {
+                    topStudentRow.classList.add('top-student');
+                }
             }
             summaryFooter.textContent = `نتیجہ: کامیاب: ${passCount} - ناکام: ${classData.students.length - passCount}`;
         }
@@ -225,33 +314,177 @@
             const student = getActiveClass().students[index];
             if (field === 'marks') {
                 if (!student.marks) student.marks = [];
-                student.marks[paperIndex] = parseInt(value) || 0;
+                student.marks[paperIndex] = value === '' ? '' : parseInt(value); 
             } else {
                 student[field] = value;
             }
             calculateResults();
         };
         window.addStudent = () => {
-            getActiveClass().students.push({ rollNo: '', marks: [] });
+            getActiveClass().students.push({ rollNo: '', name: '', marks: ['', '', '', '', '', ''] });
             renderGrid();
         };
+
         addClassBtn.addEventListener('click', () => {
             const className = prompt("نئے درجہ کا نام درج کریں:", "درجہ جدید");
             if (className) {
-                db.classes.push(createNewClassObject(className));
+                let studentCount = prompt("اس درجے میں کتنے طالب علم شامل کرنا چاہتے ہیں؟ (عدد درج کریں)", "0");
+                studentCount = parseInt(studentCount);
+                if (isNaN(studentCount) || studentCount < 0) {
+                    studentCount = 0; // Default to 0 if invalid input
+                }
+                db.classes.push(createNewClassObject(className, studentCount));
                 activeClassIndex = db.classes.length - 1;
                 renderAll();
             }
         });
 
+        // ## پرنٹ فنکشن کو درست کر دیا گیا ہے ##
+        window.printStudentCard = (index) => {
+            const classData = getActiveClass();
+            const student = classData.students[index];
+            let obtainedMarks = 0;
+            let tableRows = '';
+            let allMarksEntered = true;
+
+            for(let i=0; i<6; i++) {
+                const mark = student.marks[i];
+                let displayMark = '';
+
+                if (mark === null || mark === undefined || mark === '') {
+                    displayMark = 'غیر موجود';
+                    allMarksEntered = false;
+                } else {
+                    displayMark = mark;
+                    obtainedMarks += parseInt(mark);
+                }
+                tableRows += `<tr><td>${classData.subjectNames[i] || `مضمون ${i+1}`}</td><td>${paperNames[i]}</td><td>100</td><td>${displayMark}</td></tr>`;
+            }
+
+            const percentage = allMarksEntered ? ((obtainedMarks / 600) * 100).toFixed(1) : 'نامکمل';
+            const grade = allMarksEntered ? getGrade(obtainedMarks) : 'نامکمل';
+            const totalMarksDisplay = allMarksEntered ? `${obtainedMarks} / 600` : 'نامکمل';
+
+
+            const cardHTML = `
+                <html><head><title>کشف الدرجات - ${student.name || ''}</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+                <style>
+                    body { font-family: 'Noto Nastaliq Urdu', sans-serif; direction: rtl; margin: 0; padding: 0; font-size: 11pt; }
+                    .card-container { 
+                        width: 90%; 
+                        max-width: 700px; 
+                        margin: 20px auto; 
+                        padding: 25px; 
+                        border: 8px double #004d40; 
+                        box-sizing: border-box; 
+                        page-break-after: always; /* Ensure each card is on a new page */
+                    }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    h1 { font-size: 24pt; margin: 0; color: #004d40; }
+                    h2 { font-size: 18pt; margin: 0; color: #00695c; }
+                    .student-info { 
+                        margin-bottom: 20px; 
+                        font-size: 14pt; 
+                        line-height: 1.6; 
+                    }
+                    .student-info div { /* Changed from span to div for block behavior */
+                        text-align: right;
+                        margin-bottom: 5px; /* Add some space between info lines */
+                    }
+                    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                    th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+                    th { background-color: #e0e0e0; color: #333; }
+                    .summary { margin-top: 20px; font-size: 14pt; line-height: 1.8; text-align: center; }
+                    .signatures { margin-top: 50px; display: block; text-align: center; font-size: 12pt; } /* Changed to block for easier print handling */
+                    .signatures div { /* Changed from span to div */
+                        width: 45%; /* Keep width for styling */
+                        display: inline-block; /* Make them appear side-by-side but allow wrapping */
+                        text-align: center; 
+                        border-top: 1px dashed #333; 
+                        padding-top: 10px; 
+                        margin: 0 10px; /* Add some margin between them */
+                    }
+                    @page { 
+                        size: A4 portrait; 
+                        margin: 0.5in; 
+                    }
+                </style>
+                </head><body>
+                    <div class="card-container">
+                        <div class="header">
+                            <h1>${classData.header.madrasa}</h1>
+                            <h2>${classData.header.exam}</h2>
+                        </div>
+                        <div class="student-info">
+                            <div><strong>رول نمبر:</strong> ${student.rollNo || ''}</div>
+                            <div><strong>نام:</strong> ${student.name || ''}</div>
+                            <div><strong>درجہ:</strong> ${classData.header.class}</div>
+                        </div>
+                        <table>
+                            <thead><tr><th>مضمون</th><th>پرچہ</th><th>کل نمبر</th><th>حاصل کردہ نمبر</th></tr></thead>
+                            <tbody>${tableRows}</tbody>
+                        </table>
+                        <div class="summary">
+                            <p><strong>مجموعی نمبرات:</strong> ${totalMarksDisplay} &nbsp;&nbsp;&nbsp; <strong>فیصد:</strong> ${percentage}% &nbsp;&nbsp;&nbsp; <strong>گریڈ:</strong> ${grade}</p>
+                        </div>
+                        <div class="signatures">
+                            <div>دستخط استاد</div>
+                            <div>دستخط مہتمم</div>
+                        </div>
+                    </div>
+                </body></html>`;
+            
+            const opt = {
+                margin:       [0.5, 0.5, 0.5, 0.5], // Top, Right, Bottom, Left (changed order in v0.10.0 for consistency)
+                filename:     `StudentCard_${student.name || student.rollNo || 'نامعلوم'}.pdf`, 
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0 }, // Added scrollY: 0
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            // HTML سے PDF بنا کر محفوظ کریں
+            html2pdf().from(cardHTML).set(opt).save();
+        };
+
         document.getElementById('saveDataBtn').addEventListener('click', saveData);
-        document.getElementById('printBtn').addEventListener('click', () => window.print());
         
+        document.getElementById('printBtn').addEventListener('click', () => {
+            document.querySelectorAll('.action-buttons, .controls-panel-card, .add-student-row, .action-cell').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('tbody input[type="text"], tbody input[type="number"], .header-info input, thead input.subject-name-input').forEach(input => {
+                input.setAttribute('data-original-value', input.value);
+                input.value = input.value;
+                input.style.border = 'none';
+                input.style.background = 'transparent';
+            });
+
+            window.print();
+
+            setTimeout(() => {
+                document.querySelectorAll('.action-buttons, .controls-panel-card, .add-student-row, .action-cell').forEach(el => {
+                    el.style.display = '';
+                });
+                document.querySelectorAll('tbody input[type="text"], tbody input[type="number"], .header-info input, thead input.subject-name-input').forEach(input => {
+                    input.value = input.getAttribute('data-original-value');
+                    input.removeAttribute('data-original-value');
+                    input.style.border = '';
+                    input.style.background = '';
+                });
+            }, 500);
+        });
+
+
         const restoreInput = document.getElementById('restoreInput');
         document.getElementById('resetBtn').addEventListener('click', () => {
-            if(confirm("کیا آپ واقعی اس درجے کے تمام طلباء کا ڈیٹا ری سیٹ کرنا چاہتے ہیں؟")) {
-                getActiveClass().students = [];
-                renderGrid();
+            if(confirm("کیا آپ واقعی اس درجے کے تمام طلباء کے نمبرات ری سیٹ کرنا چاہتے ہیں؟ رول نمبر اور نام برقرار رہیں گے۔")) {
+                getActiveClass().students.forEach(student => {
+                    student.marks = ['', '', '', '', '', '']; // Only reset marks to empty strings
+                });
+                renderGrid(); // Re-render to show cleared marks
             }
         });
         document.getElementById('backupBtn').addEventListener('click', () => {
